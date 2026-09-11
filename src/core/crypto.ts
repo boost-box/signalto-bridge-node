@@ -1,7 +1,7 @@
 /**
  * crypto.ts — WinterCG-safe HMAC for the connector core (plan L-N8): Web
  * Crypto (globalThis.crypto.subtle) only, no node:crypto — the same code
- * must run on Node >=18.17, Vercel Edge, and any fetch-runtime host. All
+ * must run on Node >=20, Vercel Edge, and any fetch-runtime host. All
  * Node-specific code stays in handlers/adapters, never here.
  *
  * HONESTY / security: the site key never appears in any thrown error or log;

@@ -8,7 +8,7 @@ from SignalTo, with no deploys.
 
 ## Setup
 
-**Requirements:** Node.js **18.17 or newer**, and an **ESM** project. The package ships
+**Requirements:** Node.js **20 or newer**, and an **ESM** project. The package ships
 ES modules only — there is no CommonJS build, so `require('@signalto/bridge-node')` will
 not work. In a CommonJS codebase, load it with a dynamic `await import(...)`.
 

@@ -1,6 +1,6 @@
 {
   "name": "@signalto/bridge-node",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "SignalTo content-bridge connector for Node.js apps — serves managed robots.txt, root files, redirects, response headers and page heads from inside your app, paired to the SignalTo engine.",
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "engines": {
-    "node": ">=18.17"
+    "node": ">=20.0.0"
   },
   "bin": {
     "signalto-bridge": "./dist/cli.js"
