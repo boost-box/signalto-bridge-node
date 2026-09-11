@@ -1,0 +1,80 @@
+{
+  "name": "@signalto/bridge-node",
+  "version": "0.4.0",
+  "description": "SignalTo content-bridge connector for Node.js apps — serves managed robots.txt, root files, redirects, response headers and page heads from inside your app, paired to the SignalTo engine.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boost-box/signalto-bridge-node.git"
+  },
+  "homepage": "https://github.com/boost-box/signalto-bridge-node#readme",
+  "bugs": {
+    "url": "https://signalto.ai/support",
+    "email": "support@signalto.ai"
+  },
+  "keywords": [
+    "signalto",
+    "seo",
+    "geo",
+    "robots-txt",
+    "llms-txt",
+    "redirects",
+    "middleware",
+    "express",
+    "fastify",
+    "koa",
+    "nextjs",
+    "structured-data"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "bin": {
+    "signalto-bridge": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./express": "./dist/adapters/express.js",
+    "./fastify": "./dist/adapters/fastify.js",
+    "./koa": "./dist/adapters/koa.js",
+    "./next": "./dist/adapters/next.js",
+    "./node": "./dist/handlers/node.js",
+    "./fetch": "./dist/handlers/fetch.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "bench": "node bench/do-no-harm-bench.mjs"
+  },
+  "devDependencies": {
+    "@hapi/hapi": "^21.4.10",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.0",
+    "@types/koa": "^2.15.2",
+    "@types/node": "^22.10.0",
+    "compression": "^1.7.5",
+    "express": "^4.21.0",
+    "express5": "npm:express@^5.2.1",
+    "fastify": "^5.12.1",
+    "h3": "^2.0.1-rc.29",
+    "h3v1": "npm:h3@^1.15.11",
+    "helmet": "^8.0.0",
+    "hono": "^4.13.4",
+    "koa": "^2.16.4",
+    "playwright": "^1.62.1",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.5"
+  }
+}

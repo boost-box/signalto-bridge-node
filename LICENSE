@@ -1,0 +1,94 @@
+SignalTo Content Bridge Connector — End User License Agreement
+
+Copyright (c) 2026 Signalto Limited. All rights reserved.
+
+This software ("the Connector") is proprietary. It is published to the public npm
+registry for distribution convenience only. Publication does not place it in the
+public domain and grants no rights beyond those stated below.
+
+1. GRANT OF LICENSE
+
+   Subject to your compliance with this agreement, Signalto Limited ("Licensor")
+   grants you a non-exclusive, non-transferable, non-sublicensable, revocable
+   license to:
+
+   (a) download, install, and run the Connector within applications you own or
+       operate, and
+
+   (b) integrate the Connector into those applications as described in its
+       documentation,
+
+   for the sole purpose of connecting those applications to the SignalTo service,
+   and only for so long as you hold an active SignalTo subscription or are
+   evaluating the service with Licensor's permission.
+
+2. RESTRICTIONS
+
+   You may not:
+
+   (a) redistribute, resell, sublicense, rent, or host the Connector as, or as part
+       of, a product or service offered to third parties, except as an integrated
+       component of your own application as permitted in section 1;
+
+   (b) modify, adapt, or create derivative works of the Connector, other than
+       configuration and integration code that calls its documented interfaces;
+
+   (c) reverse engineer, decompile, or disassemble the Connector, or use it or any
+       knowledge derived from it to develop a product or service that competes with
+       the SignalTo service;
+
+   (d) use the Connector to interoperate with any service other than the SignalTo
+       service; or
+
+   (e) remove, obscure, or alter any copyright, license, or attribution notice.
+
+3. OWNERSHIP
+
+   The Connector is licensed, not sold. Licensor retains all right, title, and
+   interest in and to the Connector, including all intellectual property rights.
+   No rights are granted except as expressly set out in this agreement.
+
+4. YOUR APPLICATION AND DATA
+
+   You retain all rights in your own applications and content. The Connector
+   operates inside your application and acts on instructions retrieved from the
+   SignalTo service under the grants you have authorized. Your use of the SignalTo
+   service itself is governed by the SignalTo Terms of Service
+   (https://signalto.ai/terms), not by this agreement.
+
+5. NO WARRANTY
+
+   THE CONNECTOR IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+   FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. LICENSOR DOES NOT WARRANT THAT
+   THE CONNECTOR WILL BE UNINTERRUPTED OR ERROR-FREE.
+
+   Nothing in this agreement excludes, restricts, or modifies any guarantee,
+   warranty, right, or remedy that applicable law confers on you and that cannot
+   lawfully be excluded, restricted, or modified.
+
+6. LIMITATION OF LIABILITY
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, LICENSOR WILL NOT BE LIABLE FOR ANY
+   INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, OR FOR ANY
+   LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR IN CONNECTION
+   WITH THE CONNECTOR, WHETHER IN CONTRACT, TORT, OR OTHERWISE, EVEN IF ADVISED OF
+   THE POSSIBILITY OF SUCH DAMAGES.
+
+7. TERM AND TERMINATION
+
+   This license takes effect when you first download or use the Connector and
+   continues until terminated. It terminates automatically if you breach any term,
+   and ends when your SignalTo subscription ends. On termination you must stop using
+   the Connector and remove it from your applications. Sections 3, 5, 6, and 8
+   survive termination.
+
+8. GENERAL
+
+   This agreement is governed by the laws of New Zealand, without regard to
+   conflict of laws rules, and the courts of New Zealand have non-exclusive
+   jurisdiction over any dispute arising from it. If any provision is found
+   unenforceable, the remainder stays in force. This agreement is the entire
+   agreement between you and Licensor concerning the Connector.
+
+Questions about this license: legal@signalto.ai

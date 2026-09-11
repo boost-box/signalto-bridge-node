@@ -1,0 +1,156 @@
+# Release pipeline for @signalto/bridge-node (plan D-1/D-9): MANUAL-ONLY
+# (workflow_dispatch) — a registry release is a human
+# decision, never a side effect of a merge.
+#
+# Authentication is npm TRUSTED PUBLISHING (OIDC), not a token. There is no
+# NPM_TOKEN secret anywhere in this repo, which is the strongest form of the D-9
+# supply-chain posture available: nothing long-lived to leak, rotate, or expire
+# mid-release. npm also generates the provenance attestation automatically for
+# trusted publishes, so D-9's attestation requirement comes with it.
+#
+# The alternative — a granular access token with "Bypass 2FA" — was rejected
+# on npm's own trajectory: classic/automation tokens were removed in November
+# 2025, bypass-2FA direct publishing is deprecated, and npm removes the ability
+# to publish new versions directly with a granular token in JANUARY 2027. A
+# token would also break the day anyone sets the package's publishing access to
+# npm's own recommended "Require two-factor authentication and disallow tokens".
+#
+# THIS FILE LIVES IN THE PUBLIC MIRROR (boost-box/signalto-bridge-node), which
+# is why provenance can be attested at all: npm requires the repository named in
+# package.json "repository" to be PUBLIC and to match the repo publishing from.
+# The private monorepo (boost-box/signaltoai-engine) holds the source of truth
+# at bridge/node/ and has NO publish workflow — there is exactly one path to the
+# registry, and it starts with dev/sync-bridge-node-mirror.sh.
+#
+# The npm-side trusted publisher config must match ALL of the following exactly
+# (npm compares case-sensitively):
+#
+#   Organization or user:  boost-box
+#   Repository:            signalto-bridge-node
+#   Workflow filename:     release.yml
+#   Environment name:      npm-release
+#   Allowed actions:       npm publish
+#
+# Renaming this file, or the environment below, breaks publishing until the npm
+# config is updated to match.
+#
+# Source of this file: bridge/node/mirror/.github/workflows/release.yml in the
+# monorepo. Edit it THERE and re-sync; edits made directly in the mirror are
+# overwritten by the next sync.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: npm dist-tag to publish under
+        required: true
+        default: next
+        type: choice
+        options: [next, latest]
+
+permissions:
+  contents: read
+  id-token: write # OIDC: both the trusted-publish exchange and provenance
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Named in the npm trusted publisher config above, which makes this more
+    # than local policy: npm itself refuses a publish that does not originate
+    # from this environment. Its own protection rules (required reviewers,
+    # branch allowlist) still apply before any step runs — a workflow_dispatch
+    # button is otherwise available to everyone with write access.
+    environment: npm-release
+    steps:
+      # workflow_dispatch accepts ANY ref, including an unreviewed branch or a
+      # tag pointing at arbitrary code. Publishing from one would ship code
+      # that never passed review to every consumer of the package. Fails before
+      # checkout runs any repo-controlled step.
+      - name: Guard — releases publish from main only
+        if: github.ref != 'refs/heads/main'
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          echo "refusing to publish from $REF — releases run from refs/heads/main only"
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          # Trusted publishing requires npm >= 11.5.1 and Node >= 22.14.0. The
+          # Node 22 line still ships npm 10.9.x, which is too old and fails with
+          # an auth error rather than anything that names the real cause; Node 24
+          # ships npm 11.19+. Pinned to the major npm's own example pins.
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          # npm's guidance for release builds, and a supply-chain property worth
+          # having explicitly: a release must resolve its dependencies fresh
+          # rather than trusting a cache another workflow populated.
+          package-manager-cache: false
+      # --ignore-scripts: `npm ci` otherwise runs install lifecycle scripts from
+      # every transitive dependency inside the job that holds the OIDC
+      # id-token permission. The connector has zero runtime deps (D-9) and needs
+      # no install script of its own; the build and test steps below are invoked
+      # explicitly and are unaffected.
+      - run: npm ci --ignore-scripts
+      - name: Typecheck + tests (the release gate re-proves what CI proved)
+        run: npm run typecheck && npm test
+      - name: Build
+        run: npm run build
+      - name: Guard — package version matches CONNECTOR_VERSION
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          SRC=$(node -p "require('./dist/core/version.js').CONNECTOR_VERSION")
+          test "$PKG" = "$SRC" || { echo "package.json $PKG != CONNECTOR_VERSION $SRC"; exit 1; }
+      # The engine parses the connector's reported version with a strict
+      # /^(\d+)\.(\d+)\.(\d+)$/ (src/bridge/adapters/nodeapp.ts) and treats
+      # anything unparseable as "older than every minimum" — so a prerelease
+      # version would publish fine and then have the engine silently refuse
+      # every node_app:page/* op as predating auto-head. Caught here because the
+      # symptom points at the engine, not at the version string.
+      - name: Guard — version is plain three-part semver
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          echo "$PKG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "version '$PKG' is not plain X.Y.Z — the engine cannot parse it"; exit 1; }
+      # The EULA ships in the tarball (package.json "files"). Publishing one
+      # with unresolved [[PLACEHOLDER]] markers would put a draft legal document
+      # in front of every customer, immutably.
+      - name: Guard — LICENSE has no unresolved placeholders
+        run: |
+          test -f LICENSE || { echo "LICENSE missing — it is in package.json files[]"; exit 1; }
+          if grep -q '\[\[' LICENSE; then
+            echo "LICENSE still contains unresolved placeholders:"
+            grep -n '\[\[' LICENSE
+            exit 1
+          fi
+      # Provenance fails at the registry if package.json "repository" does not
+      # match the publishing repo (case-sensitively). Catching it here gives a
+      # readable error instead of a 422 after the build, and it also catches a
+      # botched sync that left the monorepo URL in place.
+      - name: Guard — repository field matches this repo
+        env:
+          THIS_REPO: ${{ github.repository }}
+        run: |
+          URL=$(node -p "require('./package.json').repository.url")
+          case "$URL" in
+            *"$THIS_REPO"*) echo "repository ok: $URL" ;;
+            *) echo "package.json repository ($URL) does not match $THIS_REPO — provenance will be rejected"; exit 1 ;;
+          esac
+      # No NODE_AUTH_TOKEN: the npm CLI detects the OIDC environment and
+      # exchanges the id-token for a short-lived publish credential itself.
+      # --provenance is redundant under trusted publishing (npm attests
+      # automatically) and is kept explicit so the attestation is a stated
+      # requirement of this step rather than a default we inherit.
+      #
+      # DIST_TAG goes through `env:`, never interpolated into the shell line:
+      # `${{ }}` is substituted as literal text before the shell sees it, so an
+      # input containing shell metacharacters would execute as part of the
+      # command. It is a `choice` input today, which happens to make that
+      # unreachable — but the safety would then depend on the input's type,
+      # which is exactly the kind of coupling that breaks silently when someone
+      # widens the input to a free-text string.
+      - name: Publish with provenance (trusted publishing)
+        run: npm publish --provenance --access public --tag "$DIST_TAG"
+        env:
+          DIST_TAG: ${{ inputs.dist_tag }}
