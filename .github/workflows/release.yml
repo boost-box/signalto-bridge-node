@@ -137,11 +137,20 @@ jobs:
             *"$THIS_REPO"*) echo "repository ok: $URL" ;;
             *) echo "package.json repository ($URL) does not match $THIS_REPO — provenance will be rejected"; exit 1 ;;
           esac
-      # No NODE_AUTH_TOKEN: the npm CLI detects the OIDC environment and
-      # exchanges the id-token for a short-lived publish credential itself.
-      # --provenance is redundant under trusted publishing (npm attests
-      # automatically) and is kept explicit so the attestation is a stated
-      # requirement of this step rather than a default we inherit.
+      # TWO publish steps, chosen by whether NPM_TOKEN exists, because npm's
+      # trusted-publisher UI is PACKAGE-scoped: a publisher cannot be configured
+      # for a name that has never been published (confirmed 2026-09-11). So the
+      # first release has to authenticate some other way, and no later one should.
+      #
+      # Deleting the NPM_TOKEN environment secret is what completes the
+      # migration — no workflow edit, no re-sync, nothing to remember. That
+      # matters because the alternative (edit, sync, publish, edit back, sync
+      # again) leaves a bypass-2FA token live for exactly as long as someone
+      # forgets the last step.
+      #
+      # Provenance is attested on both paths: it needs a public repo whose
+      # package.json "repository" matches the publishing repo, not a particular
+      # auth method.
       #
       # DIST_TAG goes through `env:`, never interpolated into the shell line:
       # `${{ }}` is substituted as literal text before the shell sees it, so an
@@ -150,7 +159,19 @@ jobs:
       # unreachable — but the safety would then depend on the input's type,
       # which is exactly the kind of coupling that breaks silently when someone
       # widens the input to a free-text string.
-      - name: Publish with provenance (trusted publishing)
+      - name: Publish — bootstrap path, token auth (only while NPM_TOKEN is set)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: |
+          echo "::warning::Publishing with NPM_TOKEN — the bootstrap path."
+          echo "::warning::Next: configure the trusted publisher, DELETE this secret, revoke the token."
+          npm publish --provenance --access public --tag "$DIST_TAG"
+        env:
+          DIST_TAG: ${{ inputs.dist_tag }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # No NODE_AUTH_TOKEN: the npm CLI detects the OIDC environment and
+      # exchanges the id-token for a short-lived publish credential itself.
+      - name: Publish — trusted publishing (the steady state)
+        if: ${{ secrets.NPM_TOKEN == '' }}
         run: npm publish --provenance --access public --tag "$DIST_TAG"
         env:
           DIST_TAG: ${{ inputs.dist_tag }}
