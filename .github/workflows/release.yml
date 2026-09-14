@@ -62,6 +62,13 @@ jobs:
     # branch allowlist) still apply before any step runs — a workflow_dispatch
     # button is otherwise available to everyone with write access.
     environment: npm-release
+    # The `secrets` context is NOT available in a step-level `if:` — that list is
+    # github/needs/strategy/matrix/job/runner/env/vars/steps/inputs, and a
+    # workflow using it there does not merely misbehave, it fails to parse.
+    # `jobs.<id>.env` DOES accept secrets, so the presence check happens here and
+    # the steps below branch on this plain string instead.
+    env:
+      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
     steps:
       # workflow_dispatch accepts ANY ref, including an unreviewed branch or a
       # tag pointing at arbitrary code. Publishing from one would ship code
@@ -160,7 +167,7 @@ jobs:
       # which is exactly the kind of coupling that breaks silently when someone
       # widens the input to a free-text string.
       - name: Publish — bootstrap path, token auth (only while NPM_TOKEN is set)
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: env.HAS_NPM_TOKEN == 'true'
         run: |
           echo "::warning::Publishing with NPM_TOKEN — the bootstrap path."
           echo "::warning::Next: configure the trusted publisher, DELETE this secret, revoke the token."
@@ -171,7 +178,7 @@ jobs:
       # No NODE_AUTH_TOKEN: the npm CLI detects the OIDC environment and
       # exchanges the id-token for a short-lived publish credential itself.
       - name: Publish — trusted publishing (the steady state)
-        if: ${{ secrets.NPM_TOKEN == '' }}
+        if: env.HAS_NPM_TOKEN == 'false'
         run: npm publish --provenance --access public --tag "$DIST_TAG"
         env:
           DIST_TAG: ${{ inputs.dist_tag }}
